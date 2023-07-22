@@ -93,11 +93,16 @@ export type DefaultClientEventTypes<AllowedMessageEventContent> = {
 };
 
 export interface WebSocketClient extends EventEmitter {
-  send(message: string | Uint8Array): void;
+  send(eventName: string, payload: object): void;
   ping(message?: string | Uint8Array): void;
   close(code: number, reason?: string): Promise<void>;
   closeForce(): void;
   isClosed: boolean | undefined;
+}
+
+export interface WSPayload {
+  eventName: string;
+  data: object;
 }
 
 type WebSocketAcceptedClientAllowedMessageEventContent = string | Uint8Array;
@@ -118,7 +123,7 @@ export class WebSocketAcceptedClient extends GenericEventEmitter<DefaultAccepted
       for await (const ev of this.webSocket) {
         if (typeof ev === "string") {
           // text message
-          this.emit("message", ev);
+          this.emit("message", (JSON.parse(ev) as WSPayload).eventName, (JSON.parse(ev) as WSPayload).data);
         } else if (ev instanceof Uint8Array) {
           // binary message
           this.emit("message", ev);
@@ -161,14 +166,14 @@ export class WebSocketAcceptedClient extends GenericEventEmitter<DefaultAccepted
     }
     return this.webSocket!.ping(message);
   }
-  async send(message: string | Uint8Array) {
+  async send(eventName: string, data: object) {
     try {
       if (this.state === WebSocketState.CONNECTING) {
         throw new WebSocketError(
           "WebSocket is not open: state 0 (CONNECTING)",
           );
       }
-      return this.webSocket!.send(message);
+      return this.webSocket!.send(JSON.stringify({ eventName, data } as WSPayload));
     } catch (error) {
       this.state = WebSocketState.CLOSED;
       this.emit("close", error.message);
@@ -207,7 +212,7 @@ export class StandardWebSocketClient extends GenericEventEmitter<DefaultClientEv
     if (this.endpoint !== undefined) {
       this.webSocket = new WebSocket(endpoint!);
       this.webSocket.onopen = () => this.emit("open");
-      this.webSocket.onmessage = (message) => this.emit("message", message);
+      this.webSocket.onmessage = (message) => this.emit("message", (JSON.parse(message.data) as WSPayload).eventName, (JSON.parse(message.data) as WSPayload).data);
       this.webSocket.onclose = () => this.emit("close");
       this.webSocket.onerror = () => this.emit("error");
     }
@@ -220,13 +225,13 @@ export class StandardWebSocketClient extends GenericEventEmitter<DefaultClientEv
     }
     return this.webSocket!.send("ping");
   }
-  async send(message: string | Uint8Array) {
+  async send(eventName: string, data: object) {
     if (this.webSocket?.readyState === WebSocketState.CONNECTING) {
       throw new WebSocketError(
         "WebSocket is not open: state 0 (CONNECTING)",
         );
     }
-    return this.webSocket!.send(message);
+    return this.webSocket!.send(JSON.stringify({eventName, data} as WSPayload));
   }
   async close(code = 1000, reason?: string): Promise<void> {
     if (

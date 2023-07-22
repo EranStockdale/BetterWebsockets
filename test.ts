@@ -70,7 +70,7 @@ Deno.test(
       const connection = on(wss, "connection");
       const open = on(ws, "open");
       await assertThrowsAsync(async (): Promise<void> => {
-        await ws.send("message");
+        await ws.send("test", { hello: 'world' });
       }, WebSocketError, "WebSocket is not open: state 0 (CONNECTING)");
 
       await open.next();

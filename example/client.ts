@@ -6,15 +6,17 @@ import {
 } from "./deps.ts";
 import { WebSocketClient, StandardWebSocketClient } from "../lib/websocket.ts";
 
-const endpoint = Deno.args[0] || "ws://127.0.0.1:8080";
+const endpoint = Deno.args[0] || "ws://127.0.0.1:1234";
 
 const ws: WebSocketClient = new StandardWebSocketClient(endpoint);
 ws.on("open", function() {
   Deno.stdout.write(encode(green("ws connected! (type 'close' to quit)\n")));
   Deno.stdout.write(encode("> "));
 });
-ws.on("message", function (message: string) {
-  Deno.stdout.write(encode(`${message}\n`));
+ws.on("message", function (eventName: string, data: object) {
+  if (eventName != "message") return;
+
+  Deno.stdout.write(encode(`${(data as { message: string }).message}\n`));
   Deno.stdout.write(encode("> "));
 });
 
@@ -29,7 +31,7 @@ try {
       } else if (line === "ping") {
         await ws.ping();
       } else {
-        await ws.send(line);
+        await ws.send("message", { message: line });
       }
     }
   };

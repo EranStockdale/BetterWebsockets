@@ -1,22 +1,3 @@
-<div align="center">
-  <img src="https://raw.githubusercontent.com/ryo-ma/deno-websocket/master/.assets/logo.png" width="200" alt="logo"/>
-</div>
-
-# deno websocket
-
-[![deno doc](https://img.shields.io/badge/deno-doc-informational?logo=deno)](https://doc.deno.land/https/deno.land/x/denon/mod.ts)
-![GitHub](https://img.shields.io/github/license/ryo-ma/deno-websocket)
-[![nest badge](https://nest.land/badge.svg)](https://nest.land/package/deno-websocket)
-
-🦕 A simple WebSocket library like [ws of node.js library](https://github.com/websockets/ws) for deno
-
-This library is wrapping the [ws standard library](https://github.com/denoland/deno_std/tree/main/ws) as a server-side and the [native WebSocket API](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API) as a client-side. 
-You can receive callbacks at the EventEmitter and can use the same object format on both the server-side and the client-side.
-
-
-* Deno >= 1.8.3
-
-
 # Quick Start
 
 ## Example Demo
@@ -26,13 +7,13 @@ You can receive callbacks at the EventEmitter and can use the same object format
 Server side
 
 ```bash
-$ deno run --allow-net https://deno.land/x/websocket@v0.1.4/example/server.ts
+$ deno run --allow-net https://deno.land/x/betterwebsockets@v0.1.4/example/server.ts
 ```
 
 Client side
 
 ```bash
-$ deno run --allow-net https://deno.land/x/websocket@v0.1.4/example/client.ts
+$ deno run --allow-net https://deno.land/x/betterwebsockets@v0.1.4/example/client.ts
 ws connected! (type 'close' to quit)
 > something
 ```
@@ -42,30 +23,31 @@ ws connected! (type 'close' to quit)
 Server side
 
 ```typescript
-import { WebSocketClient, WebSocketServer } from "https://deno.land/x/websocket@v0.1.4/mod.ts";
+import { WebSocketClient, WebSocketServer } from "https://deno.land/x/betterwebsockets@v1.0.0/mod.ts";
 
-const wss = new WebSocketServer(8080);
+const wss = new WebSocketServer(1234);
 wss.on("connection", function (ws: WebSocketClient) {
-  ws.on("message", function (message: string) {
-    console.log(message);
-    ws.send(message);
+  ws.on("message", function (eventname: string, data: object) {
+    console.log(eventname, data);
+    ws.send("hello", { "hello": "world" });
   });
 });
-
 ```
 
 Client side
 
 ```typescript
-import { WebSocketClient, StandardWebSocketClient } from "https://deno.land/x/websocket@v0.1.4/mod.ts";
-const endpoint = "ws://127.0.0.1:8080";
+import { WebSocketClient, StandardWebSocketClient } from "https://deno.land/x/betterwebsockets@v1.0.0/mod.ts";
+
+const endpoint = "ws://127.0.0.1:1234";
 const ws: WebSocketClient = new StandardWebSocketClient(endpoint);
 ws.on("open", function() {
   console.log("ws connected!");
-  ws.send("something");
+  ws.send("connected", { "connected": true });
 });
-ws.on("message", function (message: string) {
-  console.log(message);
+
+ws.on("message", function (eventName: string, data: object) {
+  console.log(eventName, data);
 });
 ```
 
@@ -115,7 +97,7 @@ ws.on("message", function (message: string) {
 
 | method | detail |
 | --- | --- |
-| send(message:string \| Unit8Array) | Send a message |
+| send(eventName: string, data: object) | Send a message with a payload |
 | ping(message:string \| Unit8Array) | Send the ping |
 | close([code:int[, reason:string]]) | Close the connection with the server |
 | forceClose() | Forcibly close the connection with the server |

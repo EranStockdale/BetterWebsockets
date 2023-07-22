@@ -7,13 +7,13 @@
 Server side
 
 ```bash
-$ deno run --allow-net https://deno.land/x/betterwebsockets@v0.1.4/example/server.ts
+$ deno run --allow-net https://deno.land/x/betterwebsockets@v1.0.0/example/server.ts
 ```
 
 Client side
 
 ```bash
-$ deno run --allow-net https://deno.land/x/betterwebsockets@v0.1.4/example/client.ts
+$ deno run --allow-net https://deno.land/x/betterwebsockets@v1.0.0/example/client.ts
 ws connected! (type 'close' to quit)
 > something
 ```
